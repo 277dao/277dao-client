@@ -25,7 +25,7 @@ export function getEthConnection(): Promise<EthConnection> {
   if (isProd) {
     url = localStorage.getItem('XDAI_RPC_ENDPOINT_v5') || defaultUrl;
   } else {
-    url = 'http://localhost:8545';
+    url = 'https://poa-xdai.gateway.pokt.network/v1/lb/620c7e1399eef60039c2de86';
   }
 
   console.log(`GAME METADATA:`);

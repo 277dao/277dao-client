@@ -116,22 +116,16 @@ export function useHoverArtifactId(uiManager: GameUIManager): Wrapper<ArtifactId
   return useWrappedEmitter<ArtifactId>(uiManager.hoverArtifactId$, undefined);
 }
 
-export function useMyArtifacts(uiManager: GameUIManager): Wrapper<Artifact[]> {
-  const [myArtifacts, setMyArtifacts] = useState(new Wrapper(uiManager.getMyArtifacts()));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMyArtifacts(new Wrapper(uiManager.getMyArtifacts()));
-    }, 1000);
-    return () => clearInterval(interval);
-  });
-
-  return myArtifacts;
-}
-
 export function useMyArtifactsList(uiManager: GameUIManager) {
-  const myArtifactsMap = useMyArtifacts(uiManager);
-  return Array.from(myArtifactsMap.value?.values() || []);
+  const [myArtifacts, setMyArtifacts] = useState(uiManager.getMyArtifacts());
+  useEmitterSubscribe(
+    uiManager.getArtifactUpdated$(),
+    () => {
+      setMyArtifacts(uiManager.getMyArtifacts());
+    },
+    [uiManager, setMyArtifacts]
+  );
+  return myArtifacts;
 }
 
 // note that this is going to throw an error if the pointer to `artifacts` changes but not to `planet`

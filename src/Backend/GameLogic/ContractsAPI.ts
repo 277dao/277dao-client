@@ -26,8 +26,8 @@ import {
 import {
   Artifact,
   ArtifactId,
+  ArtifactType,
   AutoGasSetting,
-  ContractMethodName,
   DiagnosticUpdater,
   EthAddress,
   LocationId,
@@ -121,8 +121,7 @@ export class ContractsAPI extends EventEmitter {
    */
   private getGasFeeForTransaction(tx: Transaction): AutoGasSetting | string {
     if (
-      (tx.intent.methodName === ContractMethodName.INIT ||
-        tx.intent.methodName === ContractMethodName.GET_SHIPS) &&
+      (tx.intent.methodName === 'initializePlayer' || tx.intent.methodName === 'getSpaceShips') &&
       tx.intent.contract.address === this.contract.address
     ) {
       return '50';
@@ -215,6 +214,7 @@ export class ContractsAPI extends EventEmitter {
           contract.filters.PlanetCaptured(null, null).topics,
           contract.filters.PlayerInitialized(null, null).topics,
           contract.filters.AdminOwnershipChanged(null, null).topics,
+          contract.filters.AdminGiveSpaceship(null, null).topics,
           contract.filters.PauseStateChanged(null).topics,
           contract.filters.LobbyCreated(null, null).topics,
         ].map((topicsOrUndefined) => (topicsOrUndefined || [])[0]),
@@ -226,6 +226,13 @@ export class ContractsAPI extends EventEmitter {
         this.emit(ContractsAPIEvent.PauseStateChanged, paused);
       },
       [ContractEvent.AdminOwnershipChanged]: (location: EthersBN, _newOwner: string) => {
+        this.emit(ContractsAPIEvent.PlanetUpdate, locationIdFromEthersBN(location));
+      },
+      [ContractEvent.AdminGiveSpaceship]: (
+        location: EthersBN,
+        _newOwner: string,
+        _type: ArtifactType
+      ) => {
         this.emit(ContractsAPIEvent.PlanetUpdate, locationIdFromEthersBN(location));
       },
       [ContractEvent.ArtifactFound]: (
@@ -407,7 +414,8 @@ export class ContractsAPI extends EventEmitter {
       BIOME_THRESHOLD_1,
       BIOME_THRESHOLD_2,
       SILVER_SCORE_VALUE,
-      PLANET_LEVEL_THRESHOLDS,
+      // TODO: Actually put this in game constants
+      // PLANET_LEVEL_THRESHOLDS,
       PLANET_RARITY,
       PLANET_TRANSFER_ENABLED,
       PHOTOID_ACTIVATION_DELAY,
@@ -478,16 +486,16 @@ export class ContractsAPI extends EventEmitter {
       BIOME_THRESHOLD_2: BIOME_THRESHOLD_2.toNumber(),
       SILVER_SCORE_VALUE: SILVER_SCORE_VALUE.toNumber(),
       PLANET_LEVEL_THRESHOLDS: [
-        PLANET_LEVEL_THRESHOLDS[0].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[1].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[2].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[3].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[4].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[5].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[6].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[7].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[8].toNumber(),
-        PLANET_LEVEL_THRESHOLDS[9].toNumber(),
+        planetLevelThresholds[0],
+        planetLevelThresholds[1],
+        planetLevelThresholds[2],
+        planetLevelThresholds[3],
+        planetLevelThresholds[4],
+        planetLevelThresholds[5],
+        planetLevelThresholds[6],
+        planetLevelThresholds[7],
+        planetLevelThresholds[8],
+        planetLevelThresholds[9],
       ],
       PLANET_RARITY: PLANET_RARITY.toNumber(),
       PLANET_TRANSFER_ENABLED,

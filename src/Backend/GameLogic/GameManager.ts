@@ -46,10 +46,10 @@ import {
   ArtifactId,
   ArtifactRarity,
   ArtifactType,
+  CaptureZone,
   Chunk,
   ClaimedCoords,
   ClaimedLocation,
-  ContractMethodName,
   Diagnostics,
   EthAddress,
   LocatablePlanet,
@@ -141,7 +141,7 @@ import { easeInAnimation, emojiEaseOutAnimation } from '../Utils/Animation';
 import SnarkArgsHelper from '../Utils/SnarkArgsHelper';
 import { hexifyBigIntNestedArray } from '../Utils/Utils';
 import { getEmojiMessage } from './ArrivalUtils';
-import { CaptureZoneGenerator } from './CaptureZoneGenerator';
+import { CaptureZoneGenerator, CaptureZonesGeneratedEvent } from './CaptureZoneGenerator';
 import { ContractsAPI, makeContractsAPI } from './ContractsAPI';
 import { GameObjects } from './GameObjects';
 import { InitialGameStateDownloader } from './InitialGameStateDownloader';
@@ -352,7 +352,7 @@ class GameManager extends EventEmitter {
   /**
    * Generates capture zones.
    */
-  private captureZoneGenerator: CaptureZoneGenerator;
+  private captureZoneGenerator: CaptureZoneGenerator | undefined;
 
   private constructor(
     terminal: React.MutableRefObject<TerminalHandle | undefined>,
@@ -967,7 +967,7 @@ class GameManager extends EventEmitter {
     }
   }
 
-  private async hardRefreshArtifact(artifactId: ArtifactId): Promise<void> {
+  public async hardRefreshArtifact(artifactId: ArtifactId): Promise<void> {
     const artifact = await this.contractsAPI.getArtifactById(artifactId);
     if (!artifact) return;
     this.entityStore.replaceArtifactFromContractData(artifact);
@@ -1719,8 +1719,8 @@ class GameManager extends EventEmitter {
     return (myLastClaimTimestamp + this.contractConstants.CLAIM_PLANET_COOLDOWN) * 1000;
   }
 
-  public getCaptureZones() {
-    return this.captureZoneGenerator.getZones();
+  public getCaptureZones(): Set<CaptureZone> {
+    return this.captureZoneGenerator?.getZones() || new Set();
   }
 
   /**
@@ -1782,7 +1782,7 @@ class GameManager extends EventEmitter {
       };
 
       const txIntent: UnconfirmedReveal = {
-        methodName: ContractMethodName.REVEAL_LOCATION,
+        methodName: 'revealLocation',
         contract: this.contractsAPI.contract,
         locationId: planetId,
         location: planet.location,
@@ -1794,13 +1794,17 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.REVEAL_LOCATION, e.message);
+      this.getNotificationsManager().txInitError('revealLocation', e.message);
       throw e;
     }
   }
 
   public async invadePlanet(locationId: LocationId) {
     try {
+      if (!this.captureZoneGenerator) {
+        throw new Error('Capture zones are not enabled in this game');
+      }
+
       const planet = this.entityStore.getPlanetWithId(locationId);
 
       if (!planet || !isLocatable(planet)) {
@@ -1811,8 +1815,8 @@ class GameManager extends EventEmitter {
         throw new Error("you can't invade destroyed planets");
       }
 
-      if (planet.capturer !== EMPTY_ADDRESS) {
-        throw new Error("you can't invade planets that have already been captured");
+      if (planet.invader !== EMPTY_ADDRESS) {
+        throw new Error("you can't invade planets that have already been invaded");
       }
 
       if (planet.owner !== this.account) {
@@ -1845,7 +1849,7 @@ class GameManager extends EventEmitter {
       };
 
       const txIntent: UnconfirmedInvadePlanet = {
-        methodName: ContractMethodName.INVADE_PLANET,
+        methodName: 'invadePlanet',
         contract: this.contractsAPI.contract,
         locationId,
         args: getArgs(),
@@ -1854,7 +1858,7 @@ class GameManager extends EventEmitter {
       const tx = await this.contractsAPI.submitTransaction(txIntent);
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.INVADE_PLANET, e.message);
+      this.getNotificationsManager().txInitError('invadePlanet', e.message);
       throw e;
     }
   }
@@ -1896,7 +1900,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-capturePlanet`, locationId);
 
       const txIntent: UnconfirmedCapturePlanet = {
-        methodName: ContractMethodName.CAPTURE_PLANET,
+        methodName: 'capturePlanet',
         contract: this.contractsAPI.contract,
         locationId,
         args: Promise.resolve([locationIdToDecStr(locationId)]),
@@ -1905,7 +1909,7 @@ class GameManager extends EventEmitter {
       const tx = await this.contractsAPI.submitTransaction(txIntent);
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.CAPTURE_PLANET, e.message);
+      this.getNotificationsManager().txInitError('capturePlanet', e.message);
       throw e;
     }
   }
@@ -1946,7 +1950,7 @@ class GameManager extends EventEmitter {
       };
 
       const txIntent: UnconfirmedInit = {
-        methodName: ContractMethodName.INIT,
+        methodName: 'initializePlayer',
         contract: this.contractsAPI.contract,
         locationId: planet.location.hash,
         location: planet.location,
@@ -1982,7 +1986,7 @@ class GameManager extends EventEmitter {
 
       this.emit(GameManagerEvent.InitializedPlayer);
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.INIT, e.message);
+      this.getNotificationsManager().txInitError('initializePlayer', e.message);
       throw e;
     }
   }
@@ -1995,7 +1999,7 @@ class GameManager extends EventEmitter {
 
     if (this.getGameObjects().isGettingSpaceships()) return;
     const tx = await this.contractsAPI.submitTransaction({
-      methodName: ContractMethodName.GET_SHIPS,
+      methodName: 'giveSpaceShips',
       contract: this.contractsAPI.contract,
       args: Promise.resolve(['0x' + this.homeLocation?.hash]),
     });
@@ -2210,7 +2214,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-prospectPlanet`, planetId);
 
       const txIntent: UnconfirmedProspectPlanet = {
-        methodName: ContractMethodName.PROSPECT_PLANET,
+        methodName: 'prospectPlanet',
         contract: this.contractsAPI.contract,
         planetId: planetId,
         args: Promise.resolve([locationIdToDecStr(planetId)]),
@@ -2224,7 +2228,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.PROSPECT_PLANET, e.message);
+      this.getNotificationsManager().txInitError('prospectPlanet', e.message);
       throw e;
     }
   }
@@ -2273,7 +2277,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-findArtifactOnPlanet`, planetId);
 
       const txIntent: UnconfirmedFindArtifact = {
-        methodName: ContractMethodName.FIND_ARTIFACT,
+        methodName: 'findArtifact',
         contract: this.contractsAPI.contract,
         planetId: planet.locationId,
         args: this.snarkHelper.getFindArtifactArgs(
@@ -2301,7 +2305,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.FIND_ARTIFACT, e.message);
+      this.getNotificationsManager().txInitError('findArtifact', e.message);
       throw e;
     }
   }
@@ -2324,15 +2328,12 @@ class GameManager extends EventEmitter {
 
       if (this.checkGameHasEnded()) {
         const error = new Error('game has ended');
-        this.getNotificationsManager().txInitError(
-          ContractMethodName.DEPOSIT_ARTIFACT,
-          error.message
-        );
+        this.getNotificationsManager().txInitError('depositArtifact', error.message);
         throw error;
       }
 
       const txIntent: UnconfirmedDepositArtifact = {
-        methodName: ContractMethodName.DEPOSIT_ARTIFACT,
+        methodName: 'depositArtifact',
         contract: this.contractsAPI.contract,
         locationId,
         artifactId,
@@ -2347,7 +2348,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.DEPOSIT_ARTIFACT, e.message);
+      this.getNotificationsManager().txInitError('depositArtifact', e.message);
       throw e;
     }
   }
@@ -2379,7 +2380,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-withdrawArtifact`, artifactId);
 
       const txIntent: UnconfirmedWithdrawArtifact = {
-        methodName: ContractMethodName.WITHDRAW_ARTIFACT,
+        methodName: 'withdrawArtifact',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(locationId), artifactIdToDecStr(artifactId)]),
         locationId,
@@ -2400,7 +2401,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.WITHDRAW_ARTIFACT, e.message);
+      this.getNotificationsManager().txInitError('withdrawArtifact', e.message);
       throw e;
     }
   }
@@ -2433,7 +2434,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-activateArtifact`, artifactId);
 
       const txIntent: UnconfirmedActivateArtifact = {
-        methodName: ContractMethodName.ACTIVATE_ARTIFACT,
+        methodName: 'activateArtifact',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([
           locationIdToDecStr(locationId),
@@ -2450,7 +2451,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.ACTIVATE_ARTIFACT, e.message);
+      this.getNotificationsManager().txInitError('activateArtifact', e.message);
       throw e;
     }
   }
@@ -2472,7 +2473,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-deactivateArtifact`, artifactId);
 
       const txIntent: UnconfirmedDeactivateArtifact = {
-        methodName: ContractMethodName.DEACTIVATE_ARTIFACT,
+        methodName: 'deactivateArtifact',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(locationId)]),
         locationId,
@@ -2484,7 +2485,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.DEACTIVATE_ARTIFACT, e.message);
+      this.getNotificationsManager().txInitError('deactivateArtifact', e.message);
       throw e;
     }
   }
@@ -2527,7 +2528,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-withdrawSilverPlanet`, locationId);
 
       const txIntent: UnconfirmedWithdrawSilver = {
-        methodName: ContractMethodName.WITHDRAW_SILVER,
+        methodName: 'withdrawSilver',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(locationId), amount * CONTRACT_PRECISION]),
         locationId,
@@ -2539,7 +2540,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.WITHDRAW_SILVER, e.message);
+      this.getNotificationsManager().txInitError('withdrawSilver', e.message);
       throw e;
     }
   }
@@ -2795,7 +2796,7 @@ class GameManager extends EventEmitter {
       };
 
       const txIntent: UnconfirmedMove = {
-        methodName: ContractMethodName.MOVE,
+        methodName: 'move',
         contract: this.contractsAPI.contract,
         args: getArgs(),
         from: oldLocation.hash,
@@ -2827,7 +2828,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.MOVE, e.message);
+      this.getNotificationsManager().txInitError('move', e.message);
       throw e;
     }
   }
@@ -2848,7 +2849,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-branch`, branch.toString());
 
       const txIntent: UnconfirmedUpgrade = {
-        methodName: ContractMethodName.UPGRADE,
+        methodName: 'upgradePlanet',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(planetId), branch.toString()]),
         locationId: planetId,
@@ -2860,7 +2861,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.UPGRADE, e.message);
+      this.getNotificationsManager().txInitError('upgradePlanet', e.message);
       throw e;
     }
   }
@@ -2895,7 +2896,7 @@ class GameManager extends EventEmitter {
       );
 
       const txIntent: UnconfirmedBuyHat = {
-        methodName: ContractMethodName.BUY_HAT,
+        methodName: 'buyHat',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(planetId)]),
         locationId: planetId,
@@ -2911,7 +2912,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.BUY_HAT, e.message);
+      this.getNotificationsManager().txInitError('buyHat', e.message);
       throw e;
     }
   }
@@ -2943,7 +2944,7 @@ class GameManager extends EventEmitter {
       localStorage.setItem(`${this.getAccount()?.toLowerCase()}-transferOwner`, newOwner);
 
       const txIntent: UnconfirmedPlanetTransfer = {
-        methodName: ContractMethodName.PLANET_TRANSFER,
+        methodName: 'transferPlanet',
         contract: this.contractsAPI.contract,
         args: Promise.resolve([locationIdToDecStr(planetId), newOwner]),
         planetId,
@@ -2955,7 +2956,7 @@ class GameManager extends EventEmitter {
 
       return tx;
     } catch (e) {
-      this.getNotificationsManager().txInitError(ContractMethodName.PLANET_TRANSFER, e.message);
+      this.getNotificationsManager().txInitError('transferPlanet', e.message);
       throw e;
     }
   }
@@ -3018,10 +3019,10 @@ class GameManager extends EventEmitter {
    * Gets the maximuim distance that you can send your energy from the given planet,
    * using the given percentage of that planet's current silver.
    */
-  getMaxMoveDist(planetId: LocationId, sendingPercent: number): number {
+  getMaxMoveDist(planetId: LocationId, sendingPercent: number, abandoning: boolean): number {
     const planet = this.getPlanetWithId(planetId);
     if (!planet) throw new Error('origin planet unknown');
-    return getRange(planet, sendingPercent);
+    return getRange(planet, sendingPercent, this.getRangeBuff(abandoning));
   }
 
   /**
@@ -3059,7 +3060,7 @@ class GameManager extends EventEmitter {
    * Gets all the planets that you can reach with at least 1 energy from
    * the given planet. Does not take into account wormholes.
    */
-  getPlanetsInRange(planetId: LocationId, sendingPercent: number): Planet[] {
+  getPlanetsInRange(planetId: LocationId, sendingPercent: number, abandoning: boolean): Planet[] {
     const planet = this.entityStore.getPlanetWithId(planetId);
     if (!planet) throw new Error('planet unknown');
     if (!isLocatable(planet)) throw new Error('planet location unknown');
@@ -3068,7 +3069,7 @@ class GameManager extends EventEmitter {
     // at https://github.com/darkforest-eth/client/issues/15
     // Improved by using `planetMap` by [@phated](https://github.com/phated)
     const result = [];
-    const range = getRange(planet, sendingPercent);
+    const range = getRange(planet, sendingPercent, this.getRangeBuff(abandoning));
     for (const p of this.getPlanetMap().values()) {
       if (isLocatable(p)) {
         if (this.getDistCoords(planet.location.coords, p.location.coords) < range) {
@@ -3111,7 +3112,7 @@ class GameManager extends EventEmitter {
     toId: LocationId | undefined,
     distance: number | undefined,
     sentEnergy: number,
-    abandoning = false
+    abandoning: boolean
   ) {
     const from = this.getPlanetWithId(fromId);
     const to = this.getPlanetWithId(toId);
@@ -3277,6 +3278,10 @@ class GameManager extends EventEmitter {
     });
   }
 
+  public locationBigIntFromCoords(coords: WorldCoords): BigInteger {
+    return this.planetHashMimc(coords.x, coords.y);
+  }
+
   /**
    * Helpful for listening to user input events.
    */
@@ -3291,8 +3296,8 @@ class GameManager extends EventEmitter {
   /**
    * Emits when new capture zones are generated.
    */
-  public get captureZoneGeneratedEmitter() {
-    return this.captureZoneGenerator.generated$;
+  public get captureZoneGeneratedEmitter(): Monomitter<CaptureZonesGeneratedEvent> | undefined {
+    return this.captureZoneGenerator?.generated$;
   }
 
   public getNotificationsManager() {

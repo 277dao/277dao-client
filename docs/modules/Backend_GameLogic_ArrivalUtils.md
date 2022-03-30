@@ -12,7 +12,6 @@
 - [arrive](Backend_GameLogic_ArrivalUtils.md#arrive)
 - [blocksLeftToProspectExpiration](Backend_GameLogic_ArrivalUtils.md#blockslefttoprospectexpiration)
 - [getEmojiMessage](Backend_GameLogic_ArrivalUtils.md#getemojimessage)
-- [getRange](Backend_GameLogic_ArrivalUtils.md#getrange)
 - [isFindable](Backend_GameLogic_ArrivalUtils.md#isfindable)
 - [isProspectable](Backend_GameLogic_ArrivalUtils.md#isprospectable)
 - [prospectExpired](Backend_GameLogic_ArrivalUtils.md#prospectexpired)
@@ -22,7 +21,7 @@
 
 ### applyUpgrade
 
-▸ `Const` **applyUpgrade**(`planet`, `upgrade`, `unApply?`): `void`
+▸ **applyUpgrade**(`planet`, `upgrade`, `unApply?`): `void`
 
 #### Parameters
 
@@ -40,7 +39,7 @@
 
 ### arrive
 
-▸ `Const` **arrive**(`toPlanet`, `artifactsOnPlanet`, `arrival`, `arrivingArtifact`, `contractConstants`): [`PlanetDiff`](../interfaces/Backend_GameLogic_ArrivalUtils.PlanetDiff.md)
+▸ **arrive**(`toPlanet`, `artifactsOnPlanet`, `arrival`, `arrivingArtifact`, `contractConstants`): [`PlanetDiff`](../interfaces/Backend_GameLogic_ArrivalUtils.PlanetDiff.md)
 
 #### Parameters
 
@@ -60,7 +59,7 @@
 
 ### blocksLeftToProspectExpiration
 
-▸ `Const` **blocksLeftToProspectExpiration**(`currentBlockNumber`, `prospectedBlockNumber?`): `number`
+▸ **blocksLeftToProspectExpiration**(`currentBlockNumber`, `prospectedBlockNumber?`): `number`
 
 #### Parameters
 
@@ -94,29 +93,9 @@
 
 ---
 
-### getRange
-
-▸ **getRange**(`planet`, `percentEnergySending?`, `rangeBoost?`): `number`
-
-**`todo`** - planet class
-
-#### Parameters
-
-| Name                   | Type     | Default value | Description                                                                                                                  |
-| :--------------------- | :------- | :------------ | :--------------------------------------------------------------------------------------------------------------------------- |
-| `planet`               | `Planet` | `undefined`   | -                                                                                                                            |
-| `percentEnergySending` | `number` | `100`         | -                                                                                                                            |
-| `rangeBoost`           | `number` | `1`           | A multiplier to be applied to the resulting range. Currently used for calculating boost associated with abandoning a planet. |
-
-#### Returns
-
-`number`
-
----
-
 ### isFindable
 
-▸ `Const` **isFindable**(`planet`, `currentBlockNumber?`): `boolean`
+▸ **isFindable**(`planet`, `currentBlockNumber?`): `boolean`
 
 #### Parameters
 
@@ -133,7 +112,7 @@
 
 ### isProspectable
 
-▸ `Const` **isProspectable**(`planet`): `boolean`
+▸ **isProspectable**(`planet`): `boolean`
 
 #### Parameters
 
@@ -149,7 +128,7 @@
 
 ### prospectExpired
 
-▸ `Const` **prospectExpired**(`currentBlockNumber`, `prospectedBlockNumber`): `boolean`
+▸ **prospectExpired**(`currentBlockNumber`, `prospectedBlockNumber`): `boolean`
 
 #### Parameters
 
@@ -166,7 +145,7 @@
 
 ### updatePlanetToTime
 
-▸ `Const` **updatePlanetToTime**(`planet`, `planetArtifacts`, `atTimeMillis`, `contractConstants`, `setPlanet?`): `void`
+▸ **updatePlanetToTime**(`planet`, `planetArtifacts`, `atTimeMillis`, `contractConstants`, `setPlanet?`): `void`
 
 #### Parameters
 

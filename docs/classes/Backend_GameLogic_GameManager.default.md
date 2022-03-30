@@ -180,6 +180,7 @@
 - [listenForNewBlock](Backend_GameLogic_GameManager.default.md#listenfornewblock)
 - [loadContract](Backend_GameLogic_GameManager.default.md#loadcontract)
 - [loadPlugins](Backend_GameLogic_GameManager.default.md#loadplugins)
+- [locationBigIntFromCoords](Backend_GameLogic_GameManager.default.md#locationbigintfromcoords)
 - [locationFromCoords](Backend_GameLogic_GameManager.default.md#locationfromcoords)
 - [move](Backend_GameLogic_GameManager.default.md#move)
 - [onTxCancelled](Backend_GameLogic_GameManager.default.md#ontxcancelled)
@@ -269,7 +270,7 @@ contract and view it without be able to make any moves.
 
 ### captureZoneGenerator
 
-• `Private` **captureZoneGenerator**: [`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
+• `Private` **captureZoneGenerator**: `undefined` \| [`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
 
 Generates capture zones.
 
@@ -556,13 +557,13 @@ Sometimes the universe gets bigger... Sometimes it doesn't.
 
 ### captureZoneGeneratedEmitter
 
-• `get` **captureZoneGeneratedEmitter**(): `Monomitter`<[`CaptureZonesGeneratedEvent`](../modules/Backend_GameLogic_CaptureZoneGenerator.md#capturezonesgeneratedevent)\>
+• `get` **captureZoneGeneratedEmitter**(): `undefined` \| `Monomitter`<[`CaptureZonesGeneratedEvent`](../modules/Backend_GameLogic_CaptureZoneGenerator.md#capturezonesgeneratedevent)\>
 
 Emits when new capture zones are generated.
 
 #### Returns
 
-`Monomitter`<[`CaptureZonesGeneratedEvent`](../modules/Backend_GameLogic_CaptureZoneGenerator.md#capturezonesgeneratedevent)\>
+`undefined` \| `Monomitter`<[`CaptureZonesGeneratedEvent`](../modules/Backend_GameLogic_CaptureZoneGenerator.md#capturezonesgeneratedevent)\>
 
 ---
 
@@ -1000,11 +1001,11 @@ represented by `undefined`.
 
 ### getCaptureZoneGenerator
 
-▸ **getCaptureZoneGenerator**(): [`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
+▸ **getCaptureZoneGenerator**(): `undefined` \| [`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
 
 #### Returns
 
-[`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
+`undefined` \| [`CaptureZoneGenerator`](Backend_GameLogic_CaptureZoneGenerator.CaptureZoneGenerator.md)
 
 ---
 
@@ -1215,7 +1216,7 @@ in seconds from the epoch.
 
 ### getEnergyArrivingForMove
 
-▸ **getEnergyArrivingForMove**(`fromId`, `toId`, `distance`, `sentEnergy`, `abandoning?`): `number`
+▸ **getEnergyArrivingForMove**(`fromId`, `toId`, `distance`, `sentEnergy`, `abandoning`): `number`
 
 Gets the amount of energy that would arrive if a voyage with the given parameters
 was to occur. The toPlanet is optional, in case you want an estimate that doesn't include
@@ -1223,13 +1224,13 @@ wormhole speedups.
 
 #### Parameters
 
-| Name         | Type                        | Default value |
-| :----------- | :-------------------------- | :------------ |
-| `fromId`     | `LocationId`                | `undefined`   |
-| `toId`       | `undefined` \| `LocationId` | `undefined`   |
-| `distance`   | `undefined` \| `number`     | `undefined`   |
-| `sentEnergy` | `number`                    | `undefined`   |
-| `abandoning` | `boolean`                   | `false`       |
+| Name         | Type                        |
+| :----------- | :-------------------------- |
+| `fromId`     | `LocationId`                |
+| `toId`       | `undefined` \| `LocationId` |
+| `distance`   | `undefined` \| `number`     |
+| `sentEnergy` | `number`                    |
+| `abandoning` | `boolean`                   |
 
 #### Returns
 
@@ -1403,7 +1404,7 @@ which means this function is fast.
 
 ### getMaxMoveDist
 
-▸ **getMaxMoveDist**(`planetId`, `sendingPercent`): `number`
+▸ **getMaxMoveDist**(`planetId`, `sendingPercent`, `abandoning`): `number`
 
 Gets the maximuim distance that you can send your energy from the given planet,
 using the given percentage of that planet's current silver.
@@ -1414,6 +1415,7 @@ using the given percentage of that planet's current silver.
 | :--------------- | :----------- |
 | `planetId`       | `LocationId` |
 | `sendingPercent` | `number`     |
+| `abandoning`     | `boolean`    |
 
 #### Returns
 
@@ -1725,7 +1727,7 @@ passed since we last updated the planet), then updates that planet first.
 
 ### getPlanetsInRange
 
-▸ **getPlanetsInRange**(`planetId`, `sendingPercent`): `Planet`[]
+▸ **getPlanetsInRange**(`planetId`, `sendingPercent`, `abandoning`): `Planet`[]
 
 Gets all the planets that you can reach with at least 1 energy from
 the given planet. Does not take into account wormholes.
@@ -1736,6 +1738,7 @@ the given planet. Does not take into account wormholes.
 | :--------------- | :----------- |
 | `planetId`       | `LocationId` |
 | `sendingPercent` | `number`     |
+| `abandoning`     | `boolean`    |
 
 #### Returns
 
@@ -2228,7 +2231,7 @@ represent a multiplier.
 
 ### hardRefreshArtifact
 
-▸ `Private` **hardRefreshArtifact**(`artifactId`): `Promise`<`void`\>
+▸ **hardRefreshArtifact**(`artifactId`): `Promise`<`void`\>
 
 #### Parameters
 
@@ -2456,6 +2459,22 @@ Load the serialized versions of all the plugins that this player has.
 #### Returns
 
 `Promise`<[`SerializedPlugin`](../interfaces/Backend_Plugins_SerializedPlugin.SerializedPlugin.md)[]\>
+
+---
+
+### locationBigIntFromCoords
+
+▸ **locationBigIntFromCoords**(`coords`): `BigInteger`
+
+#### Parameters
+
+| Name     | Type          |
+| :------- | :------------ |
+| `coords` | `WorldCoords` |
+
+#### Returns
+
+`BigInteger`
 
 ---
 

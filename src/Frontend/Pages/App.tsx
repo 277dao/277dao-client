@@ -10,6 +10,7 @@ import { CreateLobby } from './CreateLobby';
 import { GameLandingPage } from './GameLandingPage';
 import { GifMaker } from './GifMaker';
 import LandingPage from './LandingPage';
+import LandingPage2 from './LandingPage2';
 import { NotFoundPage } from './NotFoundPage';
 import { ShareArtifact } from './ShareArtifact';
 import { SharePlanet } from './SharePlanet';
@@ -32,7 +33,8 @@ function App() {
           <Switch>
             <Redirect path='/play' to={`/play/${defaultAddress}`} push={true} exact={true} />
             <Route path='/play/:contract' component={GameLandingPage} />
-            <Route path='/' exact component={LandingPage} />
+            <Route path='/original' exact component={LandingPage} />
+            <Route path='/' exact component={LandingPage2} />
             <Redirect path='/lobby' to={`/lobby/${defaultAddress}`} push={true} exact={true} />
             <Route path='/lobby/:contract' component={CreateLobby} />
             <Route path='/planet/:locationId' component={SharePlanet} />

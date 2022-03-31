@@ -71,6 +71,8 @@ const dfstyles = {
     artifactBackground: 'rgb(21, 17, 71)',
 
     icons: {
+      web: '#abcdef',
+      book: '#33523b',
       twitter: '#1DA1F2',
       github: '#8e65db',
       discord: '#7289da',

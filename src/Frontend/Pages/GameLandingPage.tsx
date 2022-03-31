@@ -131,6 +131,11 @@ export function GameLandingPage({ match }: RouteComponentProps<{ contract: strin
         );
         terminal.current?.newline();
         terminal.current?.newline();
+        terminal.current?.printElement(
+          <MythicLabelText text={`Welcome to 277Dao community round 2`} />
+        );
+        terminal.current?.newline();
+        terminal.current?.newline();
       } else {
         terminal.current?.newline();
         terminal.current?.newline();

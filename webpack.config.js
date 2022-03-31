@@ -115,7 +115,7 @@ module.exports = {
     // The string values are fallbacks if the env variable is not set
     new EnvironmentPlugin({
       NODE_ENV: 'development',
-      DEFAULT_RPC: 'https://poa-xdai.gateway.pokt.network/v1/lb/620c7e1399eef60039c2de86/',
+      DEFAULT_RPC: 'https://poa-xdai.gateway.pokt.network/v1/lb/62454b20617456003a26c0bf/',
       // This must be null to indicate to webpack that this environment variable is optional
       DF_WEBSERVER_URL: null,
     }),

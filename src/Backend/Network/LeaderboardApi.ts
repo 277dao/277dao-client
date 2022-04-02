@@ -5,11 +5,12 @@ export async function loadLeaderboard(): Promise<Leaderboard> {
     return { entries: [] };
   }
 
-  const address = `${process.env.DF_WEBSERVER_URL}/leaderboard`;
+  const address = `http://api.277dao.com/leaderboard`;
   const res = await fetch(address, {
     method: 'GET',
   });
 
+  
   const rep = await res.json();
 
   if (rep.error) {

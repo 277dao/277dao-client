@@ -10,6 +10,8 @@ import { Modal } from '../Components/Modal';
 import { HideSmall, Sub, Text, White } from '../Components/Text';
 import dfstyles from '../Styles/dfstyles';
 import { LandingPageRoundArt } from '../Views/LandingPageRoundArt';
+import { LandingPageCarousel } from '../Views/LandingPageCarousel';
+
 import { LeadboardDisplay } from '../Views/Leaderboard';
 
 export const enum LandingPageZIndex {
@@ -53,7 +55,8 @@ export default function LandingPage() {
 
         <MainContentContainer>
           <Header>
-            <LandingPageRoundArt />
+            <LandingPageCarousel />
+            <EmSpacer height={3} />
 
             <p>
               <White>Dark Forest</White> <Text>277Dao Community</Text>
@@ -65,9 +68,9 @@ export default function LandingPage() {
             <Spacer height={16} />
 
             <ButtonWrapper>
-              {/* <Btn size='large' onClick={() => history.push(`/lobby/${defaultAddress}`)}>
-                Create Lobby
-              </Btn> */}
+              <Btn size='large' onClick={() => history.push(`/lobby/${defaultAddress}`)}>
+                Test  Round
+              </Btn>
               <Btn size='large' onClick={() => history.push(`/play/${defaultAddress}`)}>
                 Enter Round 2
               </Btn>
@@ -77,7 +80,7 @@ export default function LandingPage() {
           <EmSpacer height={3} />
 
           <div style={{ color: dfstyles.colors.text }}>
-            <HallOfFameTitle>Round2 Info</HallOfFameTitle>
+            <HallOfFameTitle>Round 2 Info</HallOfFameTitle>
             <Spacer height={8} />
             <table>
               <tbody>
@@ -154,11 +157,11 @@ export default function LandingPage() {
           </VariousLinksContainer>
         </MainContentContainer>
 
+        <Spacer height={64} />
+
+        <LeadboardDisplay />
+
         <Spacer height={128} />
-
-        {/* <LeadboardDisplay /> */}
-
-        {/* <Spacer height={256} /> */}
       </Page>
     </>
   );

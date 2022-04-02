@@ -44,7 +44,7 @@ function scoreToString(score?: number | null) {
 function playerToEntry(playerStr: string, color: string) {
   // if this is an address
   if (playerStr.startsWith('0x') && playerStr.length === 42) {
-    return <TextPreview text={playerStr} focusedWidth={'150px'} unFocusedWidth={'150px'} />;
+    return <TextPreview text={playerStr} focusedWidth={'250px'} unFocusedWidth={'250px'} />;
   }
 
   return <TwitterLink twitter={playerStr} color={color} />;
@@ -86,7 +86,7 @@ function LeaderboardTable({ rows }: { rows: Array<[string, number | undefined]> 
   return (
     <TableContainer>
       <Table
-        alignments={['r', 'l', 'r']}
+        alignments={['r', 'c', 'r']}
         headers={[
           <Cell key='place'>place</Cell>,
           <Cell key='player'>player</Cell>,
@@ -115,7 +115,7 @@ function LeaderboardTable({ rows }: { rows: Array<[string, number | undefined]> 
 }
 
 // TODO: update this each round, or pull from contract constants
-const roundEndTimestamp = '2022-03-01T05:00:00.000Z';
+const roundEndTimestamp = '2022-04-06T13:00:00.000Z';
 const roundEndTime = new Date(roundEndTimestamp).getTime();
 
 function CountDown() {
@@ -170,6 +170,7 @@ function LeaderboardBody({ leaderboard }: { leaderboard: Leaderboard }) {
 
   return (
     <div>
+      <Title>Leader Board</Title>
       <StatsTableContainer>
         <StatsTable>
           <tbody>
@@ -228,4 +229,11 @@ const StatsTable = styled.table`
       text-align: left;
     }
   }
+`;
+
+const Title = styled.h2`
+  font-size: 1.5em;
+  text-align: center;
+  padding: 4px 8px;
+  color: ${dfstyles.colors.text};
 `;

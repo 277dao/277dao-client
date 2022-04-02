@@ -201,6 +201,7 @@ export function useLeaderboard(poll: number | undefined = undefined): {
 
   const load = useCallback(async function load() {
     try {
+      console.log('get leaderboard')
       setLeaderboard(await loadLeaderboard());
     } catch (e) {
       console.log('error loading leaderboard', e);

@@ -3,6 +3,7 @@ import { getPlayerColor } from '@darkforest_eth/procedural';
 import { EthAddress } from '@darkforest_eth/types';
 import colorFn from 'color';
 import React from 'react';
+import dfstyles from '../../Styles/dfstyles';
 import { usePlayer, useUIManager } from '../../Utils/AppHooks';
 import { Link } from '../CoreUI';
 import { Sub } from '../Text';
@@ -58,6 +59,9 @@ export function AccountLabel({
  * Link to a twitter account.
  */
 export function TwitterLink({ twitter, color }: { twitter: string; color?: string }) {
+  if (!twitter) {
+      return <span style={{color: dfstyles.colors.subtext}}>N/A</span>
+  }
   return (
     <Link color={color} to={`https://twitter.com/${twitter}`}>
       @{twitter}

@@ -57,6 +57,8 @@ const enum TerminalPromptStep {
   ERROR,
 }
 
+const OFFICAL_ADDRESS = '0x01195d9324fc67d6f9c17f1abebc3b8361037675'
+
 export function GameLandingPage({ match }: RouteComponentProps<{ contract: string }>) {
   const history = useHistory();
   const terminalHandle = useRef<TerminalHandle>();
@@ -126,14 +128,20 @@ export function GameLandingPage({ match }: RouteComponentProps<{ contract: strin
     async (terminal: React.MutableRefObject<TerminalHandle | undefined>) => {
       if (isLobby) {
         terminal.current?.newline();
-        terminal.current?.printElement(
-          <MythicLabelText text={`You are joining a Dark Forest lobby`} />
-        );
+        terminal.current?.newline();
+        terminal.current?.printElement(<MythicLabelText text={`Dark Forest`} />);
         terminal.current?.newline();
         terminal.current?.newline();
-        terminal.current?.printElement(
-          <MythicLabelText text={`Welcome to 277Dao community round 2`} />
-        );
+        if (contractAddress.toLowerCase() === OFFICAL_ADDRESS.toLowerCase()) {
+          terminal.current?.printElement(
+            <MythicLabelText text={`Welcome to 277Dao Community Round 3`} />
+          );
+        } else {
+
+          terminal.current?.printElement(
+            <MythicLabelText text={`Welcome to 277Dao Testing Round`} />
+          );
+        }
         terminal.current?.newline();
         terminal.current?.newline();
       } else {

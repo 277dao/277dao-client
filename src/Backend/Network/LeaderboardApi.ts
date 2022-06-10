@@ -5,7 +5,8 @@ export async function loadLeaderboard(): Promise<Leaderboard> {
     return { entries: [] };
   }
 
-  const address = `http://api.277dao.com/leaderboard`;
+  // const address = 'http://localhost:3088/leaderboard'
+  const address = `https://api.277dao.com/leaderboard`;
   const res = await fetch(address, {
     method: 'GET',
   });

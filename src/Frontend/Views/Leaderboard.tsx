@@ -63,49 +63,61 @@ function getRankColor([rank, score]: [number, number | undefined]) {
     return RarityColors[ArtifactRarity.Legendary];
   }
 
-  if (rank >= 3 && rank <= 6) {
+  if (rank >= 3 && rank <= 7) {
     return RarityColors[ArtifactRarity.Epic];
   }
 
-  if (rank >= 7 && rank <= 14) {
+  if (rank >= 8 && rank <= 16) {
     return RarityColors[ArtifactRarity.Rare];
   }
 
-  if (rank >= 15 && rank <= 30) {
+  if (rank >= 17 && rank <= 26) {
     return dfstyles.colors.dfgreen;
   }
 
-  if (rank >= 31 && rank <= 62) {
-    return 'white';
-  }
+  // if (rank >= 27 && rank <= 56) {
+  //   return 'white';
+  // }
 
   return dfstyles.colors.subtext;
 }
 
-function LeaderboardTable({ rows }: { rows: Array<[string, number | undefined]> }) {
+function LeaderboardTable({ rows }: { rows: Array<[string, string | undefined, number | undefined]> }) {
   return (
     <TableContainer>
       <Table
-        alignments={['r', 'c', 'r']}
+        alignments={['r', 'l',  'l', 'r']}
         headers={[
           <Cell key='place'>place</Cell>,
-          <Cell key='player'>player</Cell>,
+          <Cell style={{textAlign: 'center'}} key='player'>player</Cell>,
+          <Cell key='twitter'>twitter</Cell>,
           <Cell key='score'>score</Cell>,
         ]}
         rows={rows}
         columns={[
-          (row: [string, number], i) => (
-            <Cell style={{ color: getRankColor([i, row[1]]) }}>
-              {row[1] === undefined || row[1] === null ? 'unranked' : i + 1 + '.'}
+          (row: [string, string, number], i) => (
+            <Cell style={{ color: getRankColor([i, row[2]]) }}>
+              {row[2] === undefined || row[2] === null ? 'unranked' : i + 1 + '.'}
             </Cell>
           ),
-          (row: [string, number | undefined], i) => {
-            const color = getRankColor([i, row[1]]);
-            return <Cell style={{ color }}>{playerToEntry(row[0], color)}</Cell>;
+          (row: [string, string, number | undefined], i) => {
+            const color = getRankColor([i, row[2]]);
+            return <Cell style={{ color }}>
+              <TextPreview text={row[0]} focusedWidth={'250px'} unFocusedWidth={'250px'} />
+            </Cell>;
           },
-          (row: [string, number], i) => {
+          (row: [string, string, number | undefined], i) => {
+            const color = getRankColor([i, row[2]]);
             return (
-              <Cell style={{ color: getRankColor([i, row[1]]) }}>{scoreToString(row[1])}</Cell>
+              <Cell style={{ color }}>
+                <TwitterLink twitter={row[1]} color={color} />
+              </Cell>
+              )
+
+          },
+          (row: [string, string, number], i) => {
+            return (
+              <Cell style={{ color: getRankColor([i, row[2]]) }}>{scoreToString(row[2])}</Cell>
             );
           },
         ]}
@@ -115,7 +127,7 @@ function LeaderboardTable({ rows }: { rows: Array<[string, number | undefined]> 
 }
 
 // TODO: update this each round, or pull from contract constants
-const roundEndTimestamp = '2022-04-06T13:00:00.000Z';
+const roundEndTimestamp = '2022-05-05T13:00:00.000Z';
 const roundEndTime = new Date(roundEndTimestamp).getTime();
 
 function CountDown() {
@@ -160,13 +172,27 @@ function LeaderboardBody({ leaderboard }: { leaderboard: Leaderboard }) {
     return b.score - a.score;
   });
 
-  const rows: [string, number | undefined][] = leaderboard.entries.map((entry) => {
-    if (typeof entry.twitter === 'string') {
-      return [entry.twitter, entry.score];
-    }
+  const rows: [string, string | undefined, number | undefined][] = leaderboard.entries.map((entry) => {
+    // if (typeof entry.twitter === 'string') {
+    //   return [entry.twitter, entry.score];
+    // }
+    // if (entry.twitter == null) {
+    //   entry.twitter = 'N/A'
+    // }
 
-    return [entry.ethAddress, entry.score];
+    return [entry.ethAddress, entry.twitter, entry.score];
   });
+
+  const exportRank = () => {
+    console.log(rows)
+    let csvContent = 'Rank,Address,Twitter,Score\n'
+    csvContent = rows.map((r, i) => [i+1, ...r].join(',')).join('\n')
+
+    let link = document.createElement('a')
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURI(csvContent))
+    link.setAttribute('download', 'leaderboard.csv')
+    link.click()
+  }
 
   return (
     <div>
@@ -192,6 +218,7 @@ function LeaderboardBody({ leaderboard }: { leaderboard: Leaderboard }) {
         </StatsTable>
       </StatsTableContainer>
       <Spacer height={8} />
+      <TextRight onClick={exportRank}>Export</TextRight>
       <LeaderboardTable rows={rows} />
     </div>
   );
@@ -207,6 +234,8 @@ const TableContainer = styled.div`
   border-radius: 2px 2px 0 0px;
   border-bottom: none;
   padding: 16px;
+  max-width: 100vw;
+  overflow: scroll;
 `;
 
 const StatsTableContainer = styled.div`
@@ -237,3 +266,11 @@ const Title = styled.h2`
   padding: 4px 8px;
   color: ${dfstyles.colors.text};
 `;
+
+const TextRight = styled.div`
+  text-align: right;
+  color: ${dfstyles.colors.text};
+  cursor: pointer;
+  width: fit-content;
+  margin: 0 0 0 auto;
+`

@@ -12,6 +12,7 @@ import { GifMaker } from './GifMaker';
 import LandingPage from './LandingPage';
 import LandingPage2 from './LandingPage2';
 import { NotFoundPage } from './NotFoundPage';
+import PoapPage from './PoapPage';
 import { ShareArtifact } from './ShareArtifact';
 import { SharePlanet } from './SharePlanet';
 import { TestArtifactImages } from './TestArtifactImages';
@@ -35,6 +36,7 @@ function App() {
             <Route path='/play/:contract' component={GameLandingPage} />
             <Route path='/original' exact component={LandingPage} />
             <Route path='/' exact component={LandingPage2} />
+            <Route path='/poap' exact component={PoapPage} />
             <Redirect path='/lobby' to={`/lobby/${defaultAddress}`} push={true} exact={true} />
             <Route path='/lobby/:contract' component={CreateLobby} />
             <Route path='/planet/:locationId' component={SharePlanet} />
